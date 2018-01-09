@@ -1,120 +1,42 @@
+# Introduction
+
+This is my attempt at using Spark ALS to make some recommendations for users of a dating website. The algorithm uses the ratings that users made over certain profiles as well as those made by others over other profiles to see which profiles are the most probable matches for those users. The algorithm selects from the pool of profiles not previously rated by the user and tries to match males to females when that information is available. 
+
 # Requirements
 
-On Ubuntu 14.04.2:
+I ran this using:  
+On Ubuntu 16.04  
+docopt 0.6.2  
+spark 2.2.1  
+pyspark  
+python 2.7.12  
 
-```bash
-sudo add-apt-repository ppa:webupd8team/java
-sudo apt-get update
-sudo apt-get install -yq oracle-java7-installer scala git python-virtualenv python-dev unzip
-```
+## Dating profiles ratings data
 
-```bash
-curl -O http://apache.cs.utah.edu/spark/spark-1.3.0/spark-1.3.0.tgz
-tar xvf spark-1.3.0.tgz
-cd spark-1.3.0/
-build/sbt assembly
-```
+Two sets of data are available. The ratings.dat has the ratings of the users to the profiles with schema (user, profile, rating). The gender.dat has the gender information of the users and profiles with schema (ID, gender). Both are avilable at:  
+  
+http://www.occamslab.com/petricek/data/
 
-```bash
-virtualenv spark_venv
-source spark_venv/bin/activate
-git clone https://github.com/marklit/recommend.git
-cd recommend
-pip install -r requirements.txt
-```
-
-## Film ratings data
-
-```bash
-curl -O http://files.grouplens.org/papers/ml-1m.zip
-unzip -j ml-1m.zip "*.dat"
-```
-
-# Example outputs
+# Example Uses
 
 ## Training
 
 ```bash
-$ ../bin/spark-submit recommend.py train ratings.dat
-```
-
-```
-Ratings:      1,000,209
-Users:            6,040
-Movies:           3,706
-
-Training:       602,241
-Validation:     198,919
-Test:           199,049
-
-The best model was trained with:
-    Rank:                     12
-    Lambda:             0.100000
-    Iterations:               20
-    RMSE on test set:   0.869235
+$ python recommend.py train ratings.dat model_save_path
 ```
 
 ```bash
-$ ../bin/spark-submit recommend.py train ratings.dat \
-    --ranks=8,9,10 --lambdas=0.31,0.32,0.33 --iterations=3
-```
-
-```
-The best model was trained with:
-    Rank:                     10
-    Lambda:             0.320000
-    Iterations:                3
-    RMSE on test set:   0.931992
-```
-
-```bash
-$ ../bin/spark-submit recommend.py train ratings.dat \
-    --ranks=5,10,15,20 --lambdas=0.33,0.5,0.8,0.9 --iterations=3,6,9
-```
-
-```
-The best model was trained with:
-    Rank:                     15
-    Lambda:             0.330000
-    Iterations:                3
-    RMSE on test set:   0.939317
+$ python recommend.py train ratings.dat model_save_path \
+    --ranks=8,10,12 --lambdas=0.01,0.1,1.0 --iterations=10,15 --partitions=6
 ```
 
 ## Recommending
 
 ```bash
-$ ../bin/spark-submit recommend.py recommend ratings.dat movies.dat
-```
-
-```
-His Girl Friday (1940)
-New Jersey Drive (1995)
-Breakfast at Tiffany's (1961)
-Halloween 5: The Revenge of Michael Myers (1989)
-Just the Ticket (1999)
-I'll Be Home For Christmas (1998)
-Goya in Bordeaux (Goya en Bodeos) (1999)
-For the Moment (1994)
-Thomas and the Magic Railroad (2000)
-Message in a Bottle (1999)
-...
+$ python recommend.py recommend ratings.dat gender.dat model_save_path 100
 ```
 
 ```bash
-$ ../bin/spark-submit recommend.py recommend ratings.dat movies.dat \
-    --rank=15 --lambda=0.33 --iteration=3
-```
-
-```
-Goya in Bordeaux (Goya en Bodeos) (1999)
-Slums of Beverly Hills, The (1998)
-New Jersey Drive (1995)
-Bottle Rocket (1996)
-I'll Be Home For Christmas (1998)
-Big Daddy (1999)
-Kurt & Courtney (1998)
-Kika (1993)
-Omega Man, The (1971)
-Boogie Nights (1997)
-...
+$ python recommend.py recommend ratings.dat gender.dat model_save_path \
+   100 --partitions=3
 ```
