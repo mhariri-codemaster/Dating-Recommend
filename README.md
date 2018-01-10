@@ -5,7 +5,7 @@ This is my attempt at using Spark ALS to make some recommendations for users of 
 # Requirements
 
 I ran this using:  
-On Ubuntu 16.04  
+Ubuntu 16.04  
 docopt 0.6.2  
 spark 2.2.1  
 pyspark  
