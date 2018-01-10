@@ -186,23 +186,22 @@ def recommend(ratings_path, gender_path, model_path,
 	print ("Loading saved model")
         model = MatrixFactorizationModel.load(sc, model_path)
 
-	print ("Loading ratings dataset")
+	print ("Collect ratings of user "+str(userID))
 	rated = sc.textFile(ratings_path) \
             	  .map(lambda line: line.split(",")) \
                   .filter(lambda x: len(x)==3) \
                   .map(lambda x: (int(x[0]), int(x[1]))) \
-                  .groupByKey()
-	
-        # get profiles already rated by user 
-	user_rated = list(rated.lookup(userID)[0])
+		  .filter(lambda x: x[0]==userID) \
+                  .map(lambda x: x[1]) \
+                  .collect()
 
-	# get complete list of profiles
+	print("Get complete list of profiles")
         profiles = sc.textFile(ratings_path) \
             	     .map(lambda line: line.split(",")) \
                      .filter(lambda x: len(x)==3) \
-		     .map(lambda x: x[1]) \
+		     .map(lambda x: int(x[1])) \
                      .distinct() \
-                     .filter(lambda x: x not in user_rated) \
+                     .filter(lambda x: x not in rated) \
 		     .map(lambda x: (userID, x)) \
                      .repartition(numPartitions) \
                      .cache()
