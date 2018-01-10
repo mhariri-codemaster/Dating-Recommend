@@ -11,7 +11,7 @@ spark 2.2.1
 pyspark  
 python 2.7.12  
 
-## Dating profiles ratings data
+# Dating profiles ratings data
 
 Two sets of data are available. The ratings.dat has the ratings of the users to the profiles with schema (user, profile, rating). The gender.dat has the gender information of the users and profiles with schema (ID, gender). Both are avilable at:  
   
